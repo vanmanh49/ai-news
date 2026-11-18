@@ -1,0 +1,45 @@
+{
+  "maxAgeDays": 30,
+  "feeds": [
+    {
+      "name": "Hugging Face",
+      "url": "https://huggingface.co/blog/feed.xml",
+      "type": "news"
+    },
+    {
+      "name": "Google AI",
+      "url": "https://blog.google/technology/ai/rss/",
+      "type": "news"
+    },
+    {
+      "name": "Google DeepMind",
+      "url": "https://deepmind.google/blog/rss.xml",
+      "type": "news"
+    },
+    {
+      "name": "OpenAI",
+      "url": "https://openai.com/news/rss.xml",
+      "type": "news"
+    },
+    {
+      "name": "Hacker News",
+      "url": "https://hnrss.org/newest?q=AI+OR+LLM+OR+GPT&points=50",
+      "type": "news"
+    },
+    {
+      "name": "Show HN",
+      "url": "https://hnrss.org/show?q=AI+OR+LLM&points=20",
+      "type": "tools"
+    }
+  ],
+  "github": {
+    "topics": [
+      "llm",
+      "ai-agents",
+      "generative-ai"
+    ],
+    "createdWithinDays": 30,
+    "minStars": 50,
+    "perPage": 30
+  }
+}
