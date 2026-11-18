@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI News Hub</title>
+<meta name="description" content="AI news, tools and trending GitHub repos, collected automatically twice a day.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef2f0;
+    --surface: #f8faf9;
+    --ink: #17201d;
+    --muted: #56635e;
+    --line: #d3dbd7;
+    --news: #2459a8;
+    --tools: #9a5b00;
+    --repos: #1f7a4a;
+    --focus: #2459a8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #121816;
+      --surface: #1a2220;
+      --ink: #e3ebe7;
+      --muted: #9aa8a2;
+      --line: #2c3633;
+      --news: #7fb0f5;
+      --tools: #f0b45a;
+      --repos: #6fd39b;
+      --focus: #7fb0f5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 16px/1.55 "IBM Plex Sans", system-ui, sans-serif;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
+
+  header.site { padding: 40px 0 20px; }
+  header.site h1 {
+    margin: 0;
+    font: 800 clamp(2.2rem, 7vw, 3.6rem)/1 "Bricolage Grotesque", sans-serif;
+    letter-spacing: -0.03em;
+  }
+  header.site p { margin: 8px 0 0; color: var(--muted); }
+
+  .controls {
+    position: sticky; top: 0; z-index: 2;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    padding: 12px 0;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  select, input[type="search"], .types button {
+    font: inherit; font-size: 15px; color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 10px; min-height: 40px;
+  }
+  input[type="search"] { flex: 1 1 200px; min-width: 0; }
+  .types { display: flex; gap: 4px; }
+  .types button { cursor: pointer; padding: 7px 12px; }
+  .types button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .count { color: var(--muted); font-size: 14px; margin: 16px 0 0; }
+
+  .day { display: grid; grid-template-columns: 112px 1fr; gap: 0 24px; padding: 28px 0 8px; border-bottom: 1px solid var(--line); }
+  .day h2 { margin: 0; align-self: start; position: sticky; top: 76px; }
+  .day h2 .num {
+    display: block;
+    font: 800 4.5rem/0.9 "Bricolage Grotesque", sans-serif;
+    letter-spacing: -0.04em;
+  }
+  .day h2 .rest { display: block; font: 500 0.95rem/1.3 "Bricolage Grotesque", sans-serif; color: var(--muted); margin-top: 6px; }
+  .day ol { list-style: none; margin: 0; padding: 0; min-width: 0; }
+
+  .item { padding: 0 0 22px; max-width: 64ch; }
+  .item .title { font-weight: 600; font-size: 1.05rem; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
+  a.title:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--muted); margin-top: 3px; }
+  .kind { font-weight: 600; }
+  .kind.news { color: var(--news); }
+  .kind.tools { color: var(--tools); }
+  .kind.repos { color: var(--repos); }
+  .summary { margin: 5px 0 0; color: var(--muted); font-size: 15px; overflow-wrap: anywhere; }
+
+  .empty { padding: 48px 0; color: var(--muted); }
+  footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 640px) {
+    .controls { position: static; }
+    .day { grid-template-columns: 1fr; }
+    .day h2 { position: static; display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+    .day h2 .num { font-size: 2.6rem; }
+    .day h2 .rest { margin: 0; }
+    .types { width: 100%; }
+    .types button { flex: 1; padding: 7px 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="site">
+    <h1>AI News Hub</h1>
+    <p id="updated">News, tools and trending repos from across AI, collected twice a day.</p>
+  </header>
+
+  <div class="controls">
+    <label class="sr-only" for="month">Month</label>
+    <select id="month"></select>
+    <div class="types" role="group" aria-label="Show">
+      <button type="button" data-type="all" aria-pressed="true">All</button>
+      <button type="button" data-type="news" aria-pressed="false">News</button>
+      <button type="button" data-type="tools" aria-pressed="false">Tools</button>
+      <button type="button" data-type="repos" aria-pressed="false">Repos</button>
+    </div>
+    <label class="sr-only" for="q">Search this month</label>
+    <input id="q" type="search" placeholder="Search this month" autocomplete="off">
+  </div>
+
+  <p class="count" id="count" aria-live="polite"></p>
+  <main id="list"></main>
+  <footer>Links go to the original sources. Updated automatically from public feeds and GitHub.</footer>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const KIND = { news: 'News', tools: 'Tool', repos: 'Repo' };
+  const ORDER = { news: 0, tools: 1, repos: 2 };
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+  const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+  const cache = new Map();
+  const state = { month: null, type: 'all', q: '' };
+
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text; // item data only ever goes through textContent
+    return e;
+  }
+
+  function safeHref(url) {
+    try {
+      const u = new URL(url);
+      return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : null;
+    } catch { return null; }
+  }
+
+  function ago(iso) {
+    const s = (new Date(iso) - Date.now()) / 1000;
+    const units = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60]];
+    for (const [unit, size] of units) if (Math.abs(s) >= size) return rtf.format(Math.round(s / size), unit);
+    return 'just now';
+  }
+
+  function monthLabel(key) {
+    return new Date(key + '-01T00:00:00Z').toLocaleDateString('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  }
+
+  function renderItem(item) {
+    const li = el('li', 'item');
+    const href = safeHref(item.url);
+    let title;
+    if (href) {
+      title = el('a', 'title', item.title);
+      title.href = href;
+      title.target = '_blank';
+      title.rel = 'noopener noreferrer';
+    } else {
+      title = el('span', 'title', item.title);
+    }
+    li.append(title);
+    const meta = el('div', 'meta');
+    meta.append(el('span', 'kind ' + (KIND[item.type] ? item.type : ''), KIND[item.type] || item.type));
+    meta.append(el('span', null, item.source));
+    if (item.type === 'repos' && Number.isFinite(item.stars)) meta.append(el('span', null, '★ ' + compact.format(item.stars)));
+    const time = el('time', null, ago(item.date));
+    time.dateTime = item.date;
+    time.title = new Date(item.date).toLocaleString();
+    meta.append(time);
+    li.append(meta);
+    if (item.summary) li.append(el('p', 'summary', item.summary));
+    return li;
+  }
+
+  function render() {
+    const list = $('list');
+    const items = cache.get(state.month) || [];
+    const q = state.q.trim().toLowerCase();
+    const shown = items.filter(i =>
+      (state.type === 'all' || i.type === state.type) &&
+      (!q || `${i.title} ${i.summary} ${i.source}`.toLowerCase().includes(q)));
+
+    list.replaceChildren();
+    $('count').textContent = items.length ? `${shown.length} of ${items.length} items in ${monthLabel(state.month)}` : '';
+    if (!shown.length) {
+      list.append(el('p', 'empty', items.length ? 'No items match. Try another word or switch to All.' : 'No items yet. The first update will fill this page.'));
+      return;
+    }
+
+    const days = new Map();
+    for (const i of shown) {
+      const k = i.date.slice(0, 10);
+      if (!days.has(k)) days.set(k, []);
+      days.get(k).push(i);
+    }
+    for (const [k, dayItems] of days) {
+      const d = new Date(k + 'T00:00:00Z');
+      const sec = el('section', 'day');
+      const h = el('h2');
+      h.append(el('span', 'num', String(d.getUTCDate())));
+      const fmt = o => d.toLocaleDateString('en-GB', { ...o, timeZone: 'UTC' });
+      h.append(el('span', 'rest', `${fmt({ weekday: 'long' })}, ${fmt({ month: 'short', year: 'numeric' })}`));
+      h.setAttribute('aria-label', d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }));
+      const ol = el('ol');
+      // repos carry the fetch time, so they'd always top the day; show news, then tools, then repos
+      dayItems.sort((a, b) => (ORDER[a.type] ?? 3) - (ORDER[b.type] ?? 3) || b.date.localeCompare(a.date));
+      dayItems.forEach(i => ol.append(renderItem(i)));
+      sec.append(h, ol);
+      list.append(sec);
+    }
+  }
+
+  async function loadMonth(key) {
+    if (!cache.has(key)) {
+      const res = await fetch(`data/${key}.json`, { cache: 'no-cache' });
+      if (!res.ok) throw new Error(res.status);
+      cache.set(key, await res.json());
+    }
+    state.month = key;
+    const url = new URL(location.href);
+    url.searchParams.set('month', key);
+    history.replaceState(null, '', url);
+    render();
+  }
+
+  function fail() {
+    $('list').replaceChildren(el('p', 'empty', "Couldn't load the news data. Check your connection and reload the page."));
+    $('count').textContent = '';
+  }
+
+  document.querySelectorAll('.types button').forEach(b => b.addEventListener('click', () => {
+    state.type = b.dataset.type;
+    document.querySelectorAll('.types button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    render();
+  }));
+  $('q').addEventListener('input', e => { state.q = e.target.value; render(); });
+  $('month').addEventListener('change', e => loadMonth(e.target.value).catch(fail));
+
+  fetch('data/index.json', { cache: 'no-cache' })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(index => {
+      const months = Array.isArray(index.months) ? index.months : [];
+      if (index.updated) $('updated').textContent = `News, tools and trending repos from across AI. Updated ${ago(index.updated)}.`;
+      if (!months.length) { render(); return; }
+      $('month').replaceChildren(...months.map(m => { const o = el('option', null, monthLabel(m)); o.value = m; return o; }));
+      const wanted = new URLSearchParams(location.search).get('month');
+      const start = months.includes(wanted) ? wanted : months[0];
+      $('month').value = start;
+      return loadMonth(start);
+    })
+    .catch(fail);
+})();
+</script>
+</body>
+</html>

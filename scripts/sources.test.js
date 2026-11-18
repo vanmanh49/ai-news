@@ -25,6 +25,11 @@ test('feedEntryToItem rejects non-http links and missing titles', () => {
   assert.equal(feedEntryToItem({ title: '  ', link: 'https://x.com/a' }, feed, now), null);
 });
 
+test('feedEntryToItem drops hnrss boilerplate summaries', () => {
+  const entry = { title: 'T', link: 'https://x.com/a', contentSnippet: 'Article URL: https://x.com/a Comments URL: https://news.ycombinator.com/item?id=1 Points: 60' };
+  assert.equal(feedEntryToItem(entry, feed, now).summary, '');
+});
+
 test('repoToItem maps search result', () => {
   const item = repoToItem({ full_name: 'a/b', html_url: 'https://github.com/a/b', description: 'd', stargazers_count: 7 }, now);
   assert.deepEqual(item, {

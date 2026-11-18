@@ -18,6 +18,7 @@ export function feedEntryToItem(entry, feed, now) {
   const title = cleanText(entry.title, 300);
   if (!url || !title) return null;
   const d = new Date(entry.isoDate || entry.pubDate);
+  const summary = cleanText(entry.contentSnippet || entry.content || entry.summary);
   return {
     id: normalizeUrl(url),
     type: feed.type,
@@ -25,7 +26,7 @@ export function feedEntryToItem(entry, feed, now) {
     url: entry.link,
     source: feed.name,
     date: isNaN(d) ? now.toISOString() : d.toISOString(),
-    summary: cleanText(entry.contentSnippet || entry.content || entry.summary),
+    summary: summary.startsWith('Article URL:') ? '' : summary, // hnrss puts only links/points here
   };
 }
 
