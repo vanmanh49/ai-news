@@ -5,131 +5,190 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI News Hub</title>
 <meta name="description" content="AI news, tools and trending GitHub repos, collected automatically twice a day.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23DC2626'/><path d='M9 23V9h3l8 9.5V9h3v14h-3l-8-9.5V23z' fill='white'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #eef2f0;
-    --surface: #f8faf9;
-    --ink: #17201d;
-    --muted: #56635e;
-    --line: #d3dbd7;
-    --news: #2459a8;
-    --tools: #9a5b00;
-    --repos: #1f7a4a;
-    --focus: #2459a8;
+    --bg: #fafafa;
+    --card: #ffffff;
+    --fg: #1c1917;
+    --muted: #57534e;
+    --border: #e7e5e4;
+    --primary: #dc2626;      /* breaking red: brand, active tab, focus */
+    --on-primary: #ffffff;
+    --accent: #1e40af;       /* link blue */
+    --news: #1e40af;
+    --tools: #854d0e;
+    --repos: #15803d;
+    --badge-news: #dbeafe;
+    --badge-tools: #fef3c7;
+    --badge-repos: #dcfce7;
+    --radius: 10px;
+    --space: 16px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: #121816;
-      --surface: #1a2220;
-      --ink: #e3ebe7;
-      --muted: #9aa8a2;
-      --line: #2c3633;
-      --news: #7fb0f5;
-      --tools: #f0b45a;
-      --repos: #6fd39b;
-      --focus: #7fb0f5;
+      --bg: #141414;
+      --card: #1d1d1d;
+      --fg: #f5f5f4;
+      --muted: #a8a29e;
+      --border: #2e2e2e;
+      --primary: #f87171;
+      --on-primary: #1c1917;
+      --accent: #93c5fd;
+      --news: #93c5fd;
+      --tools: #fcd34d;
+      --repos: #86efac;
+      --badge-news: #1e2a44;
+      --badge-tools: #3a2f12;
+      --badge-repos: #15301f;
     }
   }
   * { box-sizing: border-box; }
+  html { scroll-padding-top: 140px; }
   body {
     margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font: 400 16px/1.55 "IBM Plex Sans", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    font: 400 16px/1.5 Roboto, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
   a { color: inherit; }
-  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .wrap { max-width: 800px; margin: 0 auto; padding: 0 var(--space); }
 
-  .wrap { max-width: 920px; margin: 0 auto; padding: 0 16px; }
-
-  header.site { padding: 40px 0 20px; }
-  header.site h1 {
-    margin: 0;
-    font: 800 clamp(2.2rem, 7vw, 3.6rem)/1 "Bricolage Grotesque", sans-serif;
-    letter-spacing: -0.03em;
+  /* Top bar */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
   }
-  header.site p { margin: 8px 0 0; color: var(--muted); }
+  .brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 10px; }
+  .brand h1 { margin: 0; display: flex; align-items: center; gap: 10px; font: 700 1.5rem/1 Newsreader, Georgia, serif; letter-spacing: -0.01em; }
+  .logo { width: 28px; height: 28px; border-radius: 7px; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; font: 700 15px/1 Roboto, sans-serif; }
+  .updated { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--repos); }
 
-  .controls {
-    position: sticky; top: 0; z-index: 2;
-    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-    padding: 12px 0;
-    background: var(--paper);
-    border-bottom: 1px solid var(--line);
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 12px; }
+  .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .tabs button {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 44px; padding: 0 14px;
+    font: 500 14px/1 Roboto, sans-serif; color: var(--muted);
+    background: transparent; border: 1px solid transparent; border-radius: 999px;
+    cursor: pointer; white-space: nowrap;
+    transition: background-color .15s ease, color .15s ease;
   }
-  select, input[type="search"], .types button {
-    font: inherit; font-size: 15px; color: var(--ink);
-    background: var(--surface);
-    border: 1px solid var(--line); border-radius: 8px;
-    padding: 7px 10px; min-height: 40px;
+  .tabs button:hover { background: var(--card); color: var(--fg); border-color: var(--border); }
+  .tabs button[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+  .tabs .n { font-size: 12px; opacity: .8; font-variant-numeric: tabular-nums; }
+  .field { position: relative; display: flex; align-items: center; }
+  .field .icon { position: absolute; left: 12px; color: var(--muted); pointer-events: none; }
+  .search { flex: 1 1 220px; }
+  select, input[type="search"] {
+    width: 100%; min-height: 44px;
+    font: 400 15px/1.2 Roboto, sans-serif; color: var(--fg);
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    transition: border-color .15s ease;
   }
-  input[type="search"] { flex: 1 1 200px; min-width: 0; }
-  .types { display: flex; gap: 4px; }
-  .types button { cursor: pointer; padding: 7px 12px; }
-  .types button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  .count { color: var(--muted); font-size: 14px; margin: 16px 0 0; }
+  select { padding: 0 12px; cursor: pointer; width: auto; }
+  input[type="search"] { padding: 0 12px 0 38px; }
+  select:hover, input[type="search"]:hover { border-color: var(--muted); }
 
-  .day { display: grid; grid-template-columns: 112px 1fr; gap: 0 24px; padding: 28px 0 8px; border-bottom: 1px solid var(--line); }
-  .day h2 { margin: 0; align-self: start; position: sticky; top: 76px; }
-  .day h2 .num {
-    display: block;
-    font: 800 4.5rem/0.9 "Bricolage Grotesque", sans-serif;
-    letter-spacing: -0.04em;
+  /* Feed */
+  .count { color: var(--muted); font-size: 14px; margin: 20px 0 4px; }
+  .day { margin-top: 20px; }
+  .day h2 {
+    position: sticky; top: var(--bar-h, 118px); z-index: 5;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    margin: 0; padding: 10px 0;
+    background: var(--bg);
+    font: 600 1.15rem/1.3 Newsreader, Georgia, serif;
+    border-bottom: 2px solid var(--fg);
   }
-  .day h2 .rest { display: block; font: 500 0.95rem/1.3 "Bricolage Grotesque", sans-serif; color: var(--muted); margin-top: 6px; }
-  .day ol { list-style: none; margin: 0; padding: 0; min-width: 0; }
+  .day h2 small { font: 400 13px/1 Roboto, sans-serif; color: var(--muted); }
+  .day ol { list-style: none; margin: 0; padding: 0; }
 
-  .item { padding: 0 0 22px; max-width: 64ch; }
-  .item .title { font-weight: 600; font-size: 1.05rem; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
-  a.title:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--muted); margin-top: 3px; }
-  .kind { font-weight: 600; }
-  .kind.news { color: var(--news); }
-  .kind.tools { color: var(--tools); }
-  .kind.repos { color: var(--repos); }
-  .summary { margin: 5px 0 0; color: var(--muted); font-size: 15px; overflow-wrap: anywhere; }
+  .item { display: block; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .item:last-child { border-bottom: 0; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13px; color: var(--muted); }
+  .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font: 500 12px/1.2 Roboto, sans-serif; }
+  .badge.news { background: var(--badge-news); color: var(--news); }
+  .badge.tools { background: var(--badge-tools); color: var(--tools); }
+  .badge.repos { background: var(--badge-repos); color: var(--repos); }
+  .source { font-weight: 500; color: var(--fg); }
+  .stars { display: inline-flex; align-items: center; gap: 3px; }
+  .stars .icon { width: 14px; height: 14px; }
+  .title {
+    display: block; margin: 8px 0 0;
+    font: 600 1.2rem/1.3 Newsreader, Georgia, serif;
+    color: var(--fg); text-decoration: none; overflow-wrap: anywhere;
+  }
+  a.title { cursor: pointer; transition: color .15s ease; }
+  a.title:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .summary {
+    margin: 6px 0 0; color: var(--muted); font-size: 15px; line-height: 1.55; max-width: 68ch; overflow-wrap: anywhere;
+    display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
 
-  .empty { padding: 48px 0; color: var(--muted); }
-  footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+  .empty { margin: 48px 0; padding: 32px; text-align: center; color: var(--muted); background: var(--card); border: 1px dashed var(--border); border-radius: var(--radius); }
+  footer { padding: 40px 0 56px; color: var(--muted); font-size: 13px; }
 
-  @media (max-width: 640px) {
-    .controls { position: static; }
-    .day { grid-template-columns: 1fr; }
-    .day h2 { position: static; display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
-    .day h2 .num { font-size: 2.6rem; }
-    .day h2 .rest { margin: 0; }
-    .types { width: 100%; }
-    .types button { flex: 1; padding: 7px 4px; }
+  @media (max-width: 560px) {
+    /* a sticky bar would cover a third of a phone screen; only day headings stick */
+    .topbar { position: static; }
+    .day h2 { top: 0; }
+    .brand h1 { font-size: 1.25rem; }
+    .updated { font-size: 12px; }
+    .tabs { flex: 1 1 100%; }
+    .search { flex: 1 1 0; min-width: 0; }
+    .title { font-size: 1.1rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="site">
-    <h1>AI News Hub</h1>
-    <p id="updated">News, tools and trending repos from across AI, collected twice a day.</p>
-  </header>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3l-5.5 2.9 1-6.2L3 9.6l6.2-.9z"/></symbol>
+</svg>
 
-  <div class="controls">
-    <label class="sr-only" for="month">Month</label>
-    <select id="month"></select>
-    <div class="types" role="group" aria-label="Show">
-      <button type="button" data-type="all" aria-pressed="true">All</button>
-      <button type="button" data-type="news" aria-pressed="false">News</button>
-      <button type="button" data-type="tools" aria-pressed="false">Tools</button>
-      <button type="button" data-type="repos" aria-pressed="false">Repos</button>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <h1><span class="logo" aria-hidden="true">AI</span>AI News Hub</h1>
+      <p class="updated" id="updated"><i class="dot" aria-hidden="true"></i><span>Collected twice a day</span></p>
     </div>
-    <label class="sr-only" for="q">Search this month</label>
-    <input id="q" type="search" placeholder="Search this month" autocomplete="off">
+    <div class="controls">
+      <div class="tabs" role="group" aria-label="Show">
+        <button type="button" data-type="all" aria-pressed="true">All <span class="n" data-n="all"></span></button>
+        <button type="button" data-type="news" aria-pressed="false">News <span class="n" data-n="news"></span></button>
+        <button type="button" data-type="tools" aria-pressed="false">Tools <span class="n" data-n="tools"></span></button>
+        <button type="button" data-type="repos" aria-pressed="false">Repos <span class="n" data-n="repos"></span></button>
+      </div>
+      <div class="field month">
+        <label class="sr-only" for="month">Month</label>
+        <select id="month"></select>
+      </div>
+      <div class="field search">
+        <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+        <label class="sr-only" for="q">Search this month</label>
+        <input id="q" type="search" placeholder="Search this month" autocomplete="off">
+      </div>
+    </div>
   </div>
+</header>
 
+<div class="wrap">
   <p class="count" id="count" aria-live="polite"></p>
   <main id="list"></main>
-  <footer>Links go to the original sources. Updated automatically from public feeds and GitHub.</footer>
+  <footer>Links go to the original sources. Collected automatically from public feeds and GitHub.</footer>
 </div>
 
 <script>
@@ -147,6 +206,16 @@
     if (cls) e.className = cls;
     if (text != null) e.textContent = text; // item data only ever goes through textContent
     return e;
+  }
+
+  function icon(id) {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('class', 'icon');
+    s.setAttribute('aria-hidden', 'true');
+    const u = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    u.setAttribute('href', '#' + id);
+    s.append(u);
+    return s;
   }
 
   function safeHref(url) {
@@ -169,6 +238,21 @@
 
   function renderItem(item) {
     const li = el('li', 'item');
+    const meta = el('div', 'meta');
+    meta.append(el('span', 'badge ' + (KIND[item.type] ? item.type : ''), KIND[item.type] || item.type));
+    meta.append(el('span', 'source', item.source));
+    if (item.type === 'repos' && Number.isFinite(item.stars)) {
+      const st = el('span', 'stars');
+      st.append(icon('i-star'), document.createTextNode(compact.format(item.stars)));
+      st.setAttribute('aria-label', `${item.stars} stars`);
+      meta.append(st);
+    }
+    const time = el('time', null, ago(item.date));
+    time.dateTime = item.date;
+    time.title = new Date(item.date).toLocaleString();
+    meta.append(time);
+    li.append(meta);
+
     const href = safeHref(item.url);
     let title;
     if (href) {
@@ -180,26 +264,25 @@
       title = el('span', 'title', item.title);
     }
     li.append(title);
-    const meta = el('div', 'meta');
-    meta.append(el('span', 'kind ' + (KIND[item.type] ? item.type : ''), KIND[item.type] || item.type));
-    meta.append(el('span', null, item.source));
-    if (item.type === 'repos' && Number.isFinite(item.stars)) meta.append(el('span', null, '★ ' + compact.format(item.stars)));
-    const time = el('time', null, ago(item.date));
-    time.dateTime = item.date;
-    time.title = new Date(item.date).toLocaleString();
-    meta.append(time);
-    li.append(meta);
     if (item.summary) li.append(el('p', 'summary', item.summary));
     return li;
+  }
+
+  function matchesQuery(i, q) {
+    return !q || `${i.title} ${i.summary} ${i.source}`.toLowerCase().includes(q);
   }
 
   function render() {
     const list = $('list');
     const items = cache.get(state.month) || [];
     const q = state.q.trim().toLowerCase();
-    const shown = items.filter(i =>
-      (state.type === 'all' || i.type === state.type) &&
-      (!q || `${i.title} ${i.summary} ${i.source}`.toLowerCase().includes(q)));
+    const searched = items.filter(i => matchesQuery(i, q));
+    const shown = searched.filter(i => state.type === 'all' || i.type === state.type);
+
+    // tab counts follow the search, so people can see where matches are
+    const counts = { all: searched.length, news: 0, tools: 0, repos: 0 };
+    for (const i of searched) if (i.type in counts) counts[i.type]++;
+    document.querySelectorAll('[data-n]').forEach(n => { n.textContent = items.length ? counts[n.dataset.n] : ''; });
 
     list.replaceChildren();
     $('count').textContent = items.length ? `${shown.length} of ${items.length} items in ${monthLabel(state.month)}` : '';
@@ -217,11 +300,8 @@
     for (const [k, dayItems] of days) {
       const d = new Date(k + 'T00:00:00Z');
       const sec = el('section', 'day');
-      const h = el('h2');
-      h.append(el('span', 'num', String(d.getUTCDate())));
-      const fmt = o => d.toLocaleDateString('en-GB', { ...o, timeZone: 'UTC' });
-      h.append(el('span', 'rest', `${fmt({ weekday: 'long' })}, ${fmt({ month: 'short', year: 'numeric' })}`));
-      h.setAttribute('aria-label', d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }));
+      const h = el('h2', null, d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }));
+      h.append(el('small', null, `${dayItems.length} ${dayItems.length === 1 ? 'item' : 'items'}`));
       const ol = el('ol');
       // repos carry the fetch time, so they'd always top the day; show news, then tools, then repos
       dayItems.sort((a, b) => (ORDER[a.type] ?? 3) - (ORDER[b.type] ?? 3) || b.date.localeCompare(a.date));
@@ -249,9 +329,13 @@
     $('count').textContent = '';
   }
 
-  document.querySelectorAll('.types button').forEach(b => b.addEventListener('click', () => {
+  // day headings stick right under the top bar, whose height changes with wrapping
+  const bar = document.querySelector('.topbar');
+  new ResizeObserver(() => document.documentElement.style.setProperty('--bar-h', bar.offsetHeight + 'px')).observe(bar);
+
+  document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
     state.type = b.dataset.type;
-    document.querySelectorAll('.types button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     render();
   }));
   $('q').addEventListener('input', e => { state.q = e.target.value; render(); });
@@ -261,7 +345,7 @@
     .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(index => {
       const months = Array.isArray(index.months) ? index.months : [];
-      if (index.updated) $('updated').textContent = `News, tools and trending repos from across AI. Updated ${ago(index.updated)}.`;
+      if (index.updated) $('updated').lastElementChild.textContent = `Updated ${ago(index.updated)}`;
       if (!months.length) { render(); return; }
       $('month').replaceChildren(...months.map(m => { const o = el('option', null, monthLabel(m)); o.value = m; return o; }));
       const wanted = new URLSearchParams(location.search).get('month');

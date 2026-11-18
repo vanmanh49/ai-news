@@ -7,9 +7,16 @@
     "code-review-anthropics@anthropic-plugin-directory": true,
     "skill-creator@anthropic-plugin-directory": true,
     "claude-md-management@anthropic-plugin-directory": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true
   },
   "extraKnownMarketplaces": {
+    "ui-ux-pro-max-skill": {
+      "source": {
+        "source": "github",
+        "repo": "nextlevelbuilder/ui-ux-pro-max-skill"
+      }
+    },
     "ponytail": {
       "source": {
         "source": "github",
