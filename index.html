@@ -6,45 +6,35 @@
 <title>AI News Hub</title>
 <meta name="description" content="AI news, tools and trending GitHub repos, collected automatically twice a day.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23DC2626'/><path d='M9 23V9h3l8 9.5V9h3v14h-3l-8-9.5V23z' fill='white'/></svg>">
+<script>
+  // apply a saved theme before first paint so there's no flash
+  try { const t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  /* light-dark() picks by color-scheme: follows the system, or the toggle via [data-theme] */
+  :root { color-scheme: light dark; }
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
   :root {
-    --bg: #fafafa;
-    --card: #ffffff;
-    --fg: #1c1917;
-    --muted: #57534e;
-    --border: #e7e5e4;
-    --primary: #dc2626;      /* breaking red: brand, active tab, focus */
-    --on-primary: #ffffff;
-    --accent: #1e40af;       /* link blue */
-    --news: #1e40af;
-    --tools: #854d0e;
-    --repos: #15803d;
-    --badge-news: #dbeafe;
-    --badge-tools: #fef3c7;
-    --badge-repos: #dcfce7;
+    --bg: light-dark(#fafafa, #141414);
+    --card: light-dark(#ffffff, #1d1d1d);
+    --fg: light-dark(#1c1917, #f5f5f4);
+    --muted: light-dark(#57534e, #a8a29e);
+    --border: light-dark(#e7e5e4, #2e2e2e);
+    --primary: light-dark(#dc2626, #f87171);      /* breaking red: brand, active tab, focus */
+    --on-primary: light-dark(#ffffff, #1c1917);
+    --accent: light-dark(#1e40af, #93c5fd);       /* link blue */
+    --news: light-dark(#1e40af, #93c5fd);
+    --tools: light-dark(#854d0e, #fcd34d);
+    --repos: light-dark(#15803d, #86efac);
+    --badge-news: light-dark(#dbeafe, #1e2a44);
+    --badge-tools: light-dark(#fef3c7, #3a2f12);
+    --badge-repos: light-dark(#dcfce7, #15301f);
     --radius: 10px;
     --space: 16px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141414;
-      --card: #1d1d1d;
-      --fg: #f5f5f4;
-      --muted: #a8a29e;
-      --border: #2e2e2e;
-      --primary: #f87171;
-      --on-primary: #1c1917;
-      --accent: #93c5fd;
-      --news: #93c5fd;
-      --tools: #fcd34d;
-      --repos: #86efac;
-      --badge-news: #1e2a44;
-      --badge-tools: #3a2f12;
-      --badge-repos: #15301f;
-    }
   }
   * { box-sizing: border-box; }
   html { scroll-padding-top: 140px; }
@@ -72,6 +62,18 @@
   .logo { width: 28px; height: 28px; border-radius: 7px; background: var(--primary); color: var(--on-primary); display: grid; place-items: center; font: 700 15px/1 Roboto, sans-serif; }
   .updated { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; white-space: nowrap; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--repos); }
+  .brand-side { display: flex; align-items: center; gap: 8px; }
+  .brand-side .updated { margin: 0; }
+  .theme {
+    display: grid; place-items: center; width: 44px; height: 44px; flex: none;
+    color: var(--fg); background: transparent; border: 1px solid var(--border); border-radius: 999px;
+    cursor: pointer; transition: background-color .15s ease;
+  }
+  .theme:hover { background: var(--card); }
+  .theme .i-sun { display: none; }
+  /* show the theme you'd switch to */
+  .is-dark .theme .i-sun { display: block; }
+  .is-dark .theme .i-moon { display: none; }
 
   .controls { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 12px; }
   .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
@@ -142,8 +144,8 @@
     /* a sticky bar would cover a third of a phone screen; only day headings stick */
     .topbar { position: static; }
     .day h2 { top: 0; }
-    .brand h1 { font-size: 1.25rem; }
-    .updated { font-size: 12px; }
+    .brand h1 { font-size: 1.25rem; white-space: nowrap; }
+    .updated { font-size: 12px; white-space: normal; text-align: right; line-height: 1.3; }
     .tabs { flex: 1 1 100%; }
     .search { flex: 1 1 0; min-width: 0; }
     .title { font-size: 1.1rem; }
@@ -157,13 +159,21 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3l-5.5 2.9 1-6.2L3 9.6l6.2-.9z"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
 </svg>
 
 <header class="topbar">
   <div class="wrap">
     <div class="brand">
       <h1><span class="logo" aria-hidden="true">AI</span>AI News Hub</h1>
-      <p class="updated" id="updated"><i class="dot" aria-hidden="true"></i><span>Collected twice a day</span></p>
+      <div class="brand-side">
+        <p class="updated" id="updated"><i class="dot" aria-hidden="true"></i><span>Collected twice a day</span></p>
+        <button type="button" class="theme" id="theme" aria-label="Switch to dark theme">
+          <svg class="icon i-moon" aria-hidden="true"><use href="#i-moon"/></svg>
+          <svg class="icon i-sun" aria-hidden="true"><use href="#i-sun"/></svg>
+        </button>
+      </div>
     </div>
     <div class="controls">
       <div class="tabs" role="group" aria-label="Show">
@@ -328,6 +338,22 @@
     $('list').replaceChildren(el('p', 'empty', "Couldn't load the news data. Check your connection and reload the page."));
     $('count').textContent = '';
   }
+
+  // theme toggle: system setting until the viewer picks one, then their pick wins
+  const root = document.documentElement;
+  const systemDark = matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : systemDark.matches;
+  function syncTheme() {
+    root.classList.toggle('is-dark', isDark());
+    $('theme').setAttribute('aria-label', isDark() ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+  $('theme').addEventListener('click', () => {
+    root.dataset.theme = isDark() ? 'light' : 'dark';
+    try { localStorage.setItem('theme', root.dataset.theme); } catch {}
+    syncTheme();
+  });
+  systemDark.addEventListener('change', syncTheme);
+  syncTheme();
 
   // day headings stick right under the top bar, whose height changes with wrapping
   const bar = document.querySelector('.topbar');
