@@ -97,7 +97,13 @@
     background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
     transition: border-color .15s ease;
   }
-  select { padding: 0 12px; cursor: pointer; width: auto; }
+  select {
+    appearance: none; -webkit-appearance: none;
+    width: auto; padding: 0 38px 0 38px;
+    font-weight: 500; cursor: pointer;
+  }
+  .field .chev { left: auto; right: 12px; width: 16px; height: 16px; }
+  .field:hover .chev { color: var(--fg); }
   input[type="search"] { padding: 0 12px 0 38px; }
   select:hover, input[type="search"]:hover { border-color: var(--muted); }
 
@@ -159,6 +165,8 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3l-5.5 2.9 1-6.2L3 9.6l6.2-.9z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
 </svg>
@@ -183,13 +191,15 @@
         <button type="button" data-type="repos" aria-pressed="false">Repos <span class="n" data-n="repos"></span></button>
       </div>
       <div class="field month">
+        <svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>
         <label class="sr-only" for="month">Month</label>
         <select id="month"></select>
+        <svg class="icon chev" aria-hidden="true"><use href="#i-chevron"/></svg>
       </div>
       <div class="field search">
         <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
         <label class="sr-only" for="q">Search this month</label>
-        <input id="q" type="search" placeholder="Search this month" autocomplete="off">
+        <input id="q" type="search" placeholder="Search" autocomplete="off">
       </div>
     </div>
   </div>
