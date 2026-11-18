@@ -1,0 +1,58 @@
+name: Update news
+
+on:
+  schedule:
+    # Refresh interval. Times are UTC. "0 0,12 * * *" = every 12 hours (00:00 and 12:00 UTC).
+    - cron: "0 0,12 * * *"
+  workflow_dispatch: # "Run workflow" button in the Actions tab
+  push:
+    branches: [main] # redeploy the page when you change it (does not fetch)
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+      - name: Fetch new items
+        if: github.event_name != 'push'
+        run: npm run fetch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit data
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then echo "No new items"; exit 0; fi
+          git commit -m "data: update $(date -u +%FT%TZ)"
+          git pull --rebase
+          git push
+
+      - name: Prepare site
+        run: mkdir _site && cp -R index.html data _site/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
