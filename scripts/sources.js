@@ -25,7 +25,7 @@ export function feedEntryToItem(entry, feed, now) {
     title,
     url: entry.link,
     source: feed.name,
-    date: isNaN(d) ? now.toISOString() : d.toISOString(),
+    date: isNaN(d) || d > now ? now.toISOString() : d.toISOString(), // future dates would open a future month by default
     summary: summary.startsWith('Article URL:') ? '' : summary, // hnrss puts only links/points here
   };
 }

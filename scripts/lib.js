@@ -10,12 +10,15 @@ export function normalizeUrl(url) {
   return u.toString(); // URL already lowercases the host
 }
 
+// fromCodePoint throws on out-of-range codes, which would knock out a whole feed
+const codePoint = (raw, n) => (n <= 0x10ffff ? String.fromCodePoint(n) : raw);
+
 export function cleanText(html, max = 200) {
   if (!html) return '';
   const text = String(html)
     .replace(/<[^>]*>/g, ' ')
-    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-    .replace(/&#(\d+);/g, (m, d) => (d === '39' ? "'" : String.fromCodePoint(Number(d))))
+    .replace(/&#x([0-9a-f]+);/gi, (m, h) => codePoint(m, parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (m, d) => codePoint(m, Number(d)))
     .replace(/&(\w+);/g, (m, n) => ENTITIES[n] ?? m)
     .replace(/\s+/g, ' ')
     .trim();

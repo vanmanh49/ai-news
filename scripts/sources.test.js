@@ -19,6 +19,11 @@ test('feedEntryToItem falls back to now for bad date', () => {
   assert.equal(feedEntryToItem({ title: 'T', link: 'https://x.com/b' }, feed, now).date, now.toISOString());
 });
 
+test('feedEntryToItem clamps future dates to now', () => {
+  const item = feedEntryToItem({ title: 'T', link: 'https://x.com/a', isoDate: '2027-03-01T00:00:00Z' }, feed, now);
+  assert.equal(item.date, now.toISOString());
+});
+
 test('feedEntryToItem rejects non-http links and missing titles', () => {
   assert.equal(feedEntryToItem({ title: 'T', link: 'javascript:alert(1)' }, feed, now), null);
   assert.equal(feedEntryToItem({ title: 'T', link: 'not a url' }, feed, now), null);

@@ -19,6 +19,10 @@ test('cleanText strips tags and entities and truncates', () => {
   assert.equal(cleanText(undefined), '');
 });
 
+test('cleanText keeps invalid numeric entities instead of throwing', () => {
+  assert.equal(cleanText('a &#99999999; b &#x110000; c'), 'a &#99999999; b &#x110000; c');
+});
+
 test('monthKey uses UTC', () => {
   assert.equal(monthKey('2026-11-30T23:30:00-05:00'), '2026-12');
 });
